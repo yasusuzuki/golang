@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang=ja>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="description" content="サンプルアプリケーション">
+    <title>SampleApp</title>
+    <link rel="stylesheet" href="/assets/Site.css">
+    <script>
+        //"契約DB詳細"ボタンや”事故DB詳細"ボタンを押下時に、遷移先をボタンに応じて動的に変更する機能
+        //前提：　<FORM>のNAMEが”DFORM"でなければならない.
+        function setFormAction(func) { document.DFORM.action = func; }
+    </script>
+</head>
+
+<body>
+    <h1> 契約DB一覧 </h1>
+    <FORM NAME='_FORM_keiyakuList_' METHOD='GET' ACTION='/keiyakuList'>
+        <TABLE CELLSPACING='4' BORDER='0'>
+            <TR ALIGN='RIGHT' VALIGN='TOP' NOWRAP><TD>証券番号：{{.formPolicyNumber}}</TD><TD>契約者名:{{.formPolicyHolderName}}</TD></TR>
+            <TR ALIGN='RIGHT' VALIGN='TOP' NOWRAP><TD>契約形態：{{.formPolicyType}}</TD></TR>
+        </TABLE>
+        <INPUT TYPE='SUBMIT' VALUE='GET' CLASS='getbutton'>
+    </FORM>
+    <PRE>
+        {{.SQL}}
+    </PRE>
+    <HR SIZE=1 NOSHADE>
+    <FORM NAME='DFORM' METHOD='GET' ACTION='/KeiyakuList'>
+        <INPUT TYPE="submit" VALUE="契約DB詳細" CLASS='button' onClick="setFormAction('/KeiyakuEnquiry');">
+        <INPUT TYPE="submit" VALUE="事故DB" CLASS='button' onClick="setFormAction('/CodeMasterEquiry');">
+        <INPUT TYPE="submit" VALUE="証券書類作成DB" CLASS='button' onClick="setFormAction('/ShokenSyoruiSakuseiEnquiry');">
+        <h3>・契約エンティティ</h3>
+        {{buildHTMLTablefromDB "契約エンティティ" 10}}
+        <h3>・明細エンティティ</h3>
+        {{buildHTMLTablefromDB "明細エンティティ" 10}}
+        <h3>・担保特約エンティティ</h3>
+        {{buildHTMLTablefromDB "担保特約エンティティ" 10}}
+    </FORM>
+</body>
+
+</html>
