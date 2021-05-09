@@ -1,0 +1,342 @@
+body{
+  font-family: verdana, Tahoma, serifSansSerifMonospace,sans-serif;
+  color:#000000;
+  font-size:12px;
+}
+
+h1 {
+  font-family: verdana, Tahoma, arial, helvetica, sans-serif;
+  color: black;
+  font-size:20px;
+  font-weight: normal;
+  letter-spacing: 1px;
+  padding-top: 0px;
+  padding-right: 0px;
+  padding-bottom: 6px;
+  padding-left: 0px;
+}
+
+h2 {
+  font-family: verdana, arial, helvetica, sans-serif;
+  color: #700;
+  font-size:16px;
+  font-weight: normal;
+  letter-spacing: 0px;
+}
+
+h3 {
+  font-family: verdana, arial, helvetica, sans-serif;
+  color:black;
+  font-size:14px;
+  font-weight: normal;
+  text-decoration:none;
+  letter-spacing: 0px;
+}
+
+h4 {
+  letter-spacing: 0px;
+}
+
+td a, td a:link, td a:active, td a:hover, td a:visited {
+  color:#500000;
+  text-decoration: underline;
+}
+
+
+/* Data Table Styles */
+
+.DataTable {
+  font-family: Verdana, serifSansSerifMonospace,sans-serif;
+  letter-spacing: 0px;
+  font-size: 11px;
+
+  border: 1px solid #666666;
+  border-collapse: collapse;
+  border-spacing: 0px;
+}
+
+
+.DataTable tr {
+  background-color: #FAFAFA;
+}
+.DataTable tr.red {
+  background-color: #F3EEE7;
+}
+.DataTable tr.grey {
+  background-color: #E0E0E0;
+}
+.DataTable tr:hover > td {
+  background-color: #FBFACE;
+}
+.DataTable tr.nohover > td {
+  background-color: #FAFAFA;
+}
+
+
+.DataTable tr th {
+  text-align: center;
+  font-weight: bold;
+  white-space: nowrap;
+  vertical-align: middle;
+/*  background-color: #BEC8D1; */
+  background-color: #DCE1E5;
+  background-image:url('/css/th_bkg.jpg');
+  background-repeat:repeat-x;
+  background-position: bottom;
+
+  color: #303030;
+
+  border: 1px solid #666666;
+  border-collapse: collapse;
+  padding-top: 2px;
+  padding-right: 4px;
+  padding-bottom: 2px;
+  padding-left: 4px;
+}
+.DataTable tr th.red {
+  background-color: #F38C4D;
+}
+.DataTable tr th.center {
+  text-align: center;
+}
+.DataTable tr th.right {
+  text-align: right;
+}
+
+
+.DataTable tr td {
+  text-align: left;
+  font-weight: normal;
+  white-space: nowrap;
+  vertical-align: top;
+  color: #303030;
+
+  border: 1px solid #666666;
+  border-collapse: collapse;
+  padding-top: 1px;
+  padding-right: 4px;
+  padding-bottom: 1px;
+  padding-left: 4px;
+}
+.DataTable tr td.center {
+  text-align: center;
+}
+.DataTable tr td.right {
+  text-align: right;
+}
+.DataTable tr td.red {
+  background-color: #F3EEE7;
+}
+.DataTable tr td.grey {
+  background-color: #E0E0E0;
+}
+.DataTable tr td.wrap {
+  white-space: normal;
+}
+
+
+
+.NULL {
+  color: #B0B0B0;
+}
+
+
+/* Style for Event Code Table */
+
+.EvntCode {
+  font-family: Verdana, serifSansSerifMonospace,sans-serif;
+  font-size: 11px;
+  border: 1px solid #666666;
+  border-collapse: collapse;
+  border-spacing: 0px;
+}
+.EvntCode tr {
+  line-height: 125%;
+  background-color: #F3EEE7;
+}
+.EvntCode tr td {
+  text-align: left;
+  vertical-align: top;
+  white-space: nowrap;
+  font-weight: normal;
+  color: #303030;
+
+  border: 1px solid #666666;
+  border-collapse: collapse;
+  padding-top: 1px;
+  padding-right: 4px;
+  padding-bottom: 1px;
+  padding-left: 4px;
+}
+
+.EvntCode tr td a,
+.EvntCode tr td a:link,
+.EvntCode tr td a:active,
+.EvntCode tr td a:visited {
+  font-family: Verdana, serifSansSerifMonospace,sans-serif;
+  text-decoration: none;
+  font-size: 11px;
+  color: #303030;
+}
+
+.EvntCode tr td a:hover {
+  text-decoration: none;
+  color: red;
+}
+
+
+/* Style for Process Code Table */
+
+.ProcCode {
+  font-family: Verdana, serifSansSerifMonospace,sans-serif;
+  font-weight: normal;
+  font-size: 12px;
+
+  border: 1px solid #666666;
+  border-collapse: collapse;
+  border-spacing: 0px;
+}
+
+.ProcCode tr {
+  line-height: 125%;
+}
+
+.ProcCode tr th {
+  text-align: left;
+  vertical-align: top;
+  white-space: nowrap;
+  color: #303030;
+  background-color: #B3CEB7;
+
+  border: 1px solid #666666;
+  border-collapse: collapse;
+  padding-top: 1px;
+  padding-right: 4px;
+  padding-bottom: 1px;
+  padding-left: 4px;
+}
+.ProcCode tr td {
+  text-align: left;
+  vertical-align: top;
+  white-space: nowrap;
+  color: #303030;
+  background-color: #F3EEE7;
+
+  border: 1px solid #666666;
+  border-collapse: collapse;
+  padding-top: 1px;
+  padding-right: 4px;
+  padding-bottom: 1px;
+  padding-left: 4px;
+}
+
+
+.ProcCode tr td a,
+.ProcCode tr td a:link,
+.ProcCode tr td a:active,
+.ProcCode tr td a:visited {
+  font-family: Verdana, serifSansSerifMonospace,sans-serif;
+  text-decoration: none;
+  font-size: 11px;
+  color: #303030;
+}
+
+.ProcCode tr td a:hover {
+  text-decoration: none;
+  color: red;
+}
+
+
+/* Input Form Related */
+
+input, select {
+  font-family: Tahoma, verdana, serifSansSerifMonospace,sans-serif;
+  font-size:12px;
+  color:#000000;
+  vertical-align: top;
+}
+
+input:focus {
+  border: 1px solid brown;
+  background-color: #e8e8e8;
+}
+input[type=checkbox], input[type=radio] {
+  vertical-align: middle;
+}
+
+.texta {
+  font-family: Tahoma, verdana, serifSansSerifMonospace,sans-serif;
+  font-size:12px;
+  background-color: #fafafa;
+  border: 1px solid #666666;
+}
+textarea:focus {
+  border: 1px solid brown;
+}
+
+.mttext {
+  font-family: verdana, Tahoma, verdana, serifSansSerifMonospace,sans-serif;
+  font-size:10px;
+  border: 1px solid #666666;
+  background-color: #fafafa;
+}
+
+.button, .button:focus {
+  font-family: Tahoma, verdana, serifSansSerifMonospace,sans-serif;
+  border: 2px solid #303030;
+  border-color: #601010;
+  background-color: #f0f0f0;
+  margin-top: 4px;
+  padding: 1px 4px 1px 4px;
+  vertical-align: middle;
+}
+.button:hover {
+  border-color: #B03030;
+  background-color: #e0e0e0;
+}
+
+.getbutton, .getbutton:focus {
+  font-family: Tahoma, verdana, serifSansSerifMonospace,sans-serif;
+  border: 2px solid #303030;
+  border-color: #B03030;
+  background-color: #f0f0f0;
+  margin-top: 4px;
+  padding: 1px 4px 1px 4px;
+  vertical-align: middle;
+}
+.getbutton:hover {
+  border-color: #E03F3F;
+  background-color: #e0e0e0;
+}
+/*  Misc  */
+
+.UserID {
+  font-family: Verdana, serifSansSerifMonospace,sans-serif;
+  text-decoration: none;
+  font-size: 6pt;
+}
+.message_error {
+	font-family: verdana, Tahoma, serifSansSerifMonospace,sans-serif;
+	white-space: normal;
+	color: #CC0000;
+	background-color: #FFFFFF;
+	border: 1px solid #FF0000;
+	margin-bottom: 5px;
+	padding-top: 5px;
+	padding-right: 5px;
+	padding-bottom: 5px;
+	padding-left: 5px;
+}
+.message_success {
+	font-family: verdana, Tahoma, serifSansSerifMonospace,sans-serif;
+	white-space: normal;
+	color: #006600;
+	background-color: #FFFFFF;
+	border: 1px solid #006600;
+	margin-bottom: 5px;
+	padding-top: 5px;
+	padding-right: 5px;
+	padding-bottom: 5px;
+	padding-left: 5px;
+}
+
