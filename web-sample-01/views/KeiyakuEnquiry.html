@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang=ja>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="description" content="web-sample-01">
+    <title>web-sample-01</title>
+    <link rel="stylesheet" href="/assets/Site.css">
+    <script>
+        //TODO: formPolicyNumberがコンマ区切りの場合、policyNumber=xxxx&policyNumber=yyyy
+        //のように、複数個にREQUESTを分解するjavascriptが必要
+\
+
+    </script>
+</head>
+
+<body>
+    <h1> 契約DB詳細 </h1>
+    <FORM NAME='_FORM_keiyakuEnquiry_' METHOD='GET' ACTION='/keiyakuEnquiry'>
+        <TABLE CELLSPACING='4' BORDER='0'>
+            <TR ALIGN='RIGHT' VALIGN='TOP' NOWRAP><TD>証券番号：{{.formPolicyNumber}}</TD></TR>
+        </TABLE>
+        <INPUT TYPE='SUBMIT' VALUE='GET' CLASS='getbutton'>
+    </FORM>
+    <PRE>
+        {{.SQLKeiyaku}}
+    </PRE>
+    <HR SIZE=1 NOSHADE>
+    <FORM NAME='DFORM' METHOD='GET' ACTION='/KeiyakuList'>
+        <h3>・契約エンティティ</h3>
+        {{buildHTMLTablefromDB .SQLKeiyaku .htmlTableCallBack}}
+        <h3>・明細エンティティ</h3>
+        {{buildHTMLTablefromDB .SQLMeisai .htmlTableCallBack}}
+        <h3>・担保特約エンティティ</h3>
+        {{buildHTMLTablefromDB .SQLTanpo .htmlTableCallBack}}
+    </FORM>
+</body>
+
+</html>

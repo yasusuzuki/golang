@@ -12,6 +12,7 @@ require (
 	github.com/mattn/go-colorable v0.1.8 // indirect
 	github.com/mattn/go-runewidth v0.0.12 // indirect
 	github.com/mattn/go-shellwords v1.0.11 // indirect
+	github.com/mattn/go-sqlite3 v1.14.7 // indirect
 	github.com/peterh/liner v1.2.1 // indirect
 	github.com/rivo/uniseg v0.2.0 // indirect
 	github.com/russross/blackfriday v1.6.0 // indirect

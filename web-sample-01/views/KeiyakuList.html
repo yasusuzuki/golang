@@ -3,13 +3,22 @@
 
 <head>
     <meta charset="utf-8">
-    <meta name="description" content="サンプルアプリケーション">
-    <title>SampleApp</title>
+    <meta name="description" content="web-sample-01">
+    <title>web-sample-01</title>
     <link rel="stylesheet" href="/assets/Site.css">
     <script>
         //"契約DB詳細"ボタンや”事故DB詳細"ボタンを押下時に、遷移先をボタンに応じて動的に変更する機能
         //前提：　<FORM>のNAMEが”DFORM"でなければならない.
         function setFormAction(func) { document.DFORM.action = func; }
+
+        //前のようにpolicyNumber_xxxxx=xxxxxのようなトリッキーなことはしていないので、substrは不要でよいかも
+        function toggleAllMsg(fld, prefix) {
+            var len = prefix.length;
+            for (i = 0; i < document.DFORM.elements.length; i++) {
+                if ((document.DFORM.elements[i].type == "checkbox") && (document.DFORM.elements[i].name.substr(0, len) == prefix))
+                    document.DFORM.elements[i].checked = fld.checked;
+            }
+        }
     </script>
 </head>
 
@@ -28,14 +37,10 @@
     <HR SIZE=1 NOSHADE>
     <FORM NAME='DFORM' METHOD='GET' ACTION='/KeiyakuList'>
         <INPUT TYPE="submit" VALUE="契約DB詳細" CLASS='button' onClick="setFormAction('/KeiyakuEnquiry');">
-        <INPUT TYPE="submit" VALUE="事故DB" CLASS='button' onClick="setFormAction('/CodeMasterEquiry');">
-        <INPUT TYPE="submit" VALUE="証券書類作成DB" CLASS='button' onClick="setFormAction('/ShokenSyoruiSakuseiEnquiry');">
+        <INPUT DISABLED="DISABLED" TYPE="submit" VALUE="事故DB[開発中]" CLASS='button' onClick="setFormAction('/CodeMasterEquiry');">
+        <INPUT DISABLED="DISABLED" TYPE="submit" VALUE="証券書類作成DB[開発中]" CLASS='button' onClick="setFormAction('/ShokenSyoruiSakuseiEnquiry');">
         <h3>・契約エンティティ</h3>
-        {{buildHTMLTablefromDB "契約エンティティ" 10}}
-        <h3>・明細エンティティ</h3>
-        {{buildHTMLTablefromDB "明細エンティティ" 10}}
-        <h3>・担保特約エンティティ</h3>
-        {{buildHTMLTablefromDB "担保特約エンティティ" 10}}
+        {{buildHTMLTablefromDB .SQL .htmlTableCallBack}}
     </FORM>
 </body>
 
