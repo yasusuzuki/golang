@@ -9,14 +9,14 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func renderKeiyakuEnquiry(ctx *gin.Context) {
+func renderTeianEnquiry(ctx *gin.Context) {
 	type TableSQL struct {
 		LogicalTableName string
 		Sql              string
 	}
 	var req struct {
-		PolicyNumber []string `form:"PolicyNumber"       binding:"required"`
-		VerboseMode  string   `form:"VerboseMode"         binding:"required"`
+		AnkenNumber []string `form:"AnkenNumber"       binding:"required"`
+		VerboseMode string   `form:"VerboseMode"         binding:"required"`
 	}
 	ctx.Bind(&req) //HTTP Requestのパラメータをreq構造体に紐づける
 	log.Printf("request parameter [%+v]", req)
@@ -25,31 +25,29 @@ func renderKeiyakuEnquiry(ctx *gin.Context) {
 	if err != nil {
 		ctx.String(http.StatusInternalServerError, err.Error())
 	}
-	//defer CurrentDB.DBConnection.Close()
+	defer CurrentDB.DBConnection.Close()
 
 	sqls := make([]TableSQL, 0, 100)
 
 	for _, logicalTableName := range DBTables {
-		//DBテーブル一覧から契約関連エンティティだけを抽出する
-		if !strings.HasPrefix(logicalTableName, "保険契約") &&
-			!strings.HasPrefix(logicalTableName, "請求保険料") &&
-			!strings.HasPrefix(logicalTableName, "保険対象") {
+		//DBテーブル一覧から提案関連エンティティだけを抽出する
+		if !strings.HasPrefix(logicalTableName, "提案") {
 			continue
 		}
-		var polNums []string
-		for _, v := range req.PolicyNumber {
-			polNums = append(polNums, "'"+strings.Replace(rtrim(v), ",", "','", -1)+"'")
+		var ankenNums []string
+		for _, v := range req.AnkenNumber {
+			ankenNums = append(ankenNums, "'"+strings.Replace(rtrim(v), ",", "','", -1)+"'")
 		}
-		polNumsString := strings.Join(polNums, ",")
-		if polNumsString == "" {
-			sqls = append(sqls, TableSQL{logicalTableName, "NO_POLICY_NUMBER"})
+		ankenNumsString := strings.Join(ankenNums, ",")
+		if ankenNumsString == "" {
+			sqls = append(sqls, TableSQL{logicalTableName, "NO_ANKEN_NUMBER"})
 		} else if L2P(logicalTableName) == "NO_PHYSICAL_TABLE" {
 			sqls = append(sqls, TableSQL{logicalTableName, "NO_PHYSICAL_TABLE"})
 		} else {
-			sqls = append(sqls, TableSQL{logicalTableName, fmt.Sprintf("SELECT * FROM %s WHERE %s IN (%s) ", L2P(logicalTableName), L2P("証券＿番号"), polNumsString)})
+			sqls = append(sqls, TableSQL{logicalTableName, fmt.Sprintf("SELECT * FROM %s WHERE %s IN (%s) ", L2P(logicalTableName), L2P("提案案件＿番号"), ankenNumsString)})
 		}
 	}
-	formPolicyNumber := buildInputTextField("PolicyNumber", strings.Join(req.PolicyNumber, ","))
+	formAnkenNumber := buildInputTextField("AnkenNumber", strings.Join(req.AnkenNumber, ","))
 	formVerboseMode := buildInputCheckbox("VerboseMode", req.VerboseMode == "on")
 
 	callback := map[string]htmlTableCallBack{
@@ -58,8 +56,8 @@ func renderKeiyakuEnquiry(ctx *gin.Context) {
 		},
 	}
 	//gin.H内に、キーバリュー形式の値を設定しておくと、テンプレート側から変数として参照できる　{{.変数名}}といった感じ
-	ctx.HTML(http.StatusOK, "KeiyakuEnquiry.html", gin.H{
-		"formPolicyNumber":  formPolicyNumber,
+	ctx.HTML(http.StatusOK, "TeianEnquiry.html", gin.H{
+		"formAnkenNumber":   formAnkenNumber,
 		"htmlTableCallBack": callback,
 		"SQLs":              sqls,
 		"formVerboseMode":   formVerboseMode,

@@ -3,19 +3,19 @@
 
 <head>
     <meta charset="utf-8">
-    <meta name="description" content="web-sample-01">
-    <title>web-sample-01</title>
+    <meta name="description" content="web-keiyaku-viewer_v1.0">
+    <title>web-keiyaku-viewer_v1.0</title>
     <link rel="stylesheet" href="/assets/Site.css">
     <script>
         //"契約DB詳細"ボタンや”事故DB詳細"ボタンを押下時に、遷移先をボタンに応じて動的に変更する機能
         //前提：　<FORM>のNAMEが”DFORM"でなければならない.
         function setFormAction(func) { document.DFORM.action = func; }
 
-        //前のようにpolicyNumber_xxxxx=xxxxxのようなトリッキーなことはしていないので、substrは不要でよいかも
+        //ヘッダーのチェックボックスを押すと、すべての行のチェックと連動する
         function toggleAllMsg(fld, prefix) {
             var len = prefix.length;
             for (i = 0; i < document.DFORM.elements.length; i++) {
-                if ((document.DFORM.elements[i].type == "checkbox") && (document.DFORM.elements[i].name.substr(0, len) == prefix))
+                if ((document.DFORM.elements[i].type == "checkbox") && (document.DFORM.elements[i].name == prefix))
                     document.DFORM.elements[i].checked = fld.checked;
             }
         }
@@ -26,8 +26,16 @@
     <h1> 契約DB一覧 </h1>
     <FORM NAME='_FORM_keiyakuList_' METHOD='GET' ACTION='/keiyakuList'>
         <TABLE CELLSPACING='4' BORDER='0'>
-            <TR ALIGN='RIGHT' VALIGN='TOP' NOWRAP><TD>証券番号：{{.formPolicyNumber}}</TD><TD>契約者名:{{.formPolicyHolderName}}</TD></TR>
-            <TR ALIGN='RIGHT' VALIGN='TOP' NOWRAP><TD>契約形態：{{.formPolicyType}}</TD></TR>
+            <TR ALIGN='RIGHT' VALIGN='TOP' NOWRAP>
+                <TD>証券番号(*)：{{.formPolicyNumber}}</TD>
+                <TD>契約者名(*):{{.formPolicyHolderName}}</TD>
+                <TD>MAX:{{.formMaxFetchRows}}</TD>
+
+            </TR>
+            <TR ALIGN='RIGHT' VALIGN='TOP' NOWRAP>
+                <TD>種目：{{.formPolicyType}}</TD>
+                <TD>DB：{{.formEnvironment}} <font color='lightgrey'>(config.json内のDBConnection.ENVより)</font></TD>
+            </TR>
         </TABLE>
         <INPUT TYPE='SUBMIT' VALUE='GET' CLASS='getbutton'>
     </FORM>
@@ -36,9 +44,12 @@
     </PRE>
     <HR SIZE=1 NOSHADE>
     <FORM NAME='DFORM' METHOD='GET' ACTION='/KeiyakuList'>
-        <INPUT TYPE="submit" VALUE="契約DB詳細" CLASS='button' onClick="setFormAction('/KeiyakuEnquiry');">
-        <INPUT DISABLED="DISABLED" TYPE="submit" VALUE="事故DB[開発中]" CLASS='button' onClick="setFormAction('/CodeMasterEquiry');">
-        <INPUT DISABLED="DISABLED" TYPE="submit" VALUE="証券書類作成DB[開発中]" CLASS='button' onClick="setFormAction('/ShokenSyoruiSakuseiEnquiry');">
+        <INPUT TYPE="submit" VALUE="契約DB詳細" CLASS='button' onClick="setFormAction('/keiyakuEnquiry');">
+        <INPUT TYPE="submit" VALUE="コードマスタ" CLASS='button' onClick="setFormAction('/codeMasterEnquiry');">
+        <INPUT TYPE="submit" VALUE="データディクショナリ（データ項目一覧）" CLASS='button' onClick="setFormAction('/dataDictionaryEnquiry');">
+        <INPUT TYPE="submit" VALUE="提案DB一覧" CLASS='button' onClick="setFormAction('/teianList');">
+        <INPUT DISABLED="DISABLED" TYPE="submit" VALUE="契約DB履歴一覧[開発中]" CLASS='button' onClick="setFormAction('/keiyakuHistory');">
+        <INPUT DISABLED="DISABLED" TYPE="submit" VALUE="証券書類作成DB[開発中]" CLASS='button' onClick="setFormAction('/shokenSyoruiSakuseiEnquiry');">
         <h3>・契約エンティティ</h3>
         {{buildHTMLTablefromDB .SQL .htmlTableCallBack}}
     </FORM>

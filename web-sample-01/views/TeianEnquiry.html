@@ -14,11 +14,11 @@
 </head>
 
 <body>
-    <h1> 契約DB詳細 </h1>
-    <FORM NAME='_FORM_keiyakuEnquiry_' METHOD='GET' ACTION='/keiyakuEnquiry'>
+    <h1> 提案DB詳細 </h1>
+    <FORM NAME='_FORM_teianEnquiry_' METHOD='GET' ACTION='/teianEnquiry'>
         <TABLE CELLSPACING='4' BORDER='0'>
             <TR ALIGN='RIGHT' VALIGN='TOP' NOWRAP>
-                <TD>証券番号：{{.formPolicyNumber}}</TD>
+                <TD>提案番号：{{.formAnkenNumber}}</TD>
                 <TD>冗長モード: {{.formVerboseMode}}</TD>
            </TR>
         </TABLE>
@@ -26,20 +26,21 @@
     </FORM>
     <HR SIZE=1 NOSHADE>
     <FORM NAME='DFORM' METHOD='GET' ACTION='/'>
-        <INPUT TYPE="submit" VALUE="契約DB一覧" CLASS='button' onClick="setFormAction('/keiyakuList');">
+        <INPUT TYPE="submit" VALUE="提案DB一覧" CLASS='button' onClick="setFormAction('/teianList');">
         <DIV STYLE='display:flex;flex-direction:row;justify-content: space-between;width:400px'>
-            <A HREF='#保険契約' style='color:gray;text-decoration:none'>保険契約↓</A>
-            <A HREF='#保険契約種目' style='color:gray;text-decoration:none'>保険契約種目↓</A>
-            <A HREF='#保険契約明細' style='color:gray;text-decoration:none'>保険契約明細↓</A>
-            <A HREF='#保険契約明細担保条件特約' style='color:gray;text-decoration:none'>保険契約明細担保条件特約↓</A>
-        </DIV>
+        <A HREF='#提案' style='color:gray;text-decoration:none'>提案↓</A>
+         <A HREF='#提案種目' style='color:gray;text-decoration:none'>提案種目↓</A>
+         <A HREF='#提案明細' style='color:gray;text-decoration:none'>提案明細↓</A>
+         <A HREF='#提案明細担保条件特約' style='color:gray;text-decoration:none'>提案明細担保条件特約↓</A>
+         </DIV>
+
         {{$callback := .htmlTableCallBack}}
         {{range $idx,$item := .SQLs}}
         <h3 id='{{$item.LogicalTableName}}'>・ {{$item.LogicalTableName}}</h3>
             {{if eq $item.Sql "NO_PHYSICAL_TABLE"}}
                 <div>物理テーブルはなし</div>
-            {{else if eq $item.Sql "NO_POLICY_NUMBER"}}
-                <div>証券番号なし</div>
+            {{else if eq $item.Sql "NO_ANKEN_NUMBER"}}
+                <div>案件番号なし</div>
             {{else}}
                 {{buildHTMLTablefromDB $item.Sql $callback}}
             {{end}}

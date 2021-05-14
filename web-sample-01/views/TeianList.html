@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang=ja>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="description" content="web-keiyaku-viewer_v1.0">
+    <title>web-keiyaku-viewer_v1.0</title>
+    <link rel="stylesheet" href="/assets/Site.css">
+    <script>
+        //"契約DB詳細"ボタンや”事故DB詳細"ボタンを押下時に、遷移先をボタンに応じて動的に変更する機能
+        //前提：　<FORM>のNAMEが”DFORM"でなければならない.
+        function setFormAction(func) { document.DFORM.action = func; }
+
+        //ヘッダーのチェックボックスを押すと、すべての行のチェックと連動する
+        function toggleAllMsg(fld, prefix) {
+            var len = prefix.length;
+            for (i = 0; i < document.DFORM.elements.length; i++) {
+                if ((document.DFORM.elements[i].type == "checkbox") && (document.DFORM.elements[i].name == prefix))
+                    document.DFORM.elements[i].checked = fld.checked;
+            }
+        }
+    </script>
+</head>
+
+<BODY>
+    <H1> 提案DB一覧 </H1>
+    <FORM NAME='_FORM_ankenList_' METHOD='GET' ACTION='/teianList'>
+        <TABLE CELLSPACING='4' BORDER='0'>
+            <TR ALIGN='RIGHT' VALIGN='TOP' NOWRAP>
+                <TD>案件番号(*)：{{.formAnkenNumber}}</TD>
+                <TD>契約者名(*):{{.formPolicyHolderName}}</TD>
+                <TD>MAX:{{.formMaxFetchRows}}</TD>
+
+            </TR>
+            <TR ALIGN='RIGHT' VALIGN='TOP' NOWRAP>
+                <TD>種目：{{.formPolicyType}}</TD>
+                <TD>DB：{{.formEnvironment}} <font color='lightgrey'>(config.json内のDBConnection.ENVより)</font></TD>
+            </TR>
+        </TABLE>
+        <INPUT TYPE='SUBMIT' VALUE='GET' CLASS='getbutton'>
+    </FORM>
+    {{$SQL :=`
+    SELECT
+    a.提案案件＿番号,a.提案案件番号枝番＿番号,a.提案連続＿番号,a.提案設計データバージョン番号＿数,d.保険契約明細＿番号,a.証券＿番号,d.保険契約保険種目＿コード,d.単位商品＿コード,a.保険契約明細区分＿コード,a.保険契約消滅変更当否＿フラグ,a.契約始期年月日＿日付,
+    b.契約者氏名＿漢字, a.団体＿コード,a.代理店＿コード,a.代理店サブ＿コード,a.契約保険期間年＿数,a.イベント発生タイムスタンプ＿日付 as time
+    FROM 提案 a
+    INNER JOIN 提案明細 d ON a.契約管理区分キー＿英数カナ = d.契約管理区分キー＿英数カナ AND a.提案設計データバージョン番号＿数 = d.提案設計データバージョン番号＿数 AND a.提案案件＿番号 =
+    d.提案案件＿番号 AND a.提案案件番号枝番＿番号 = d.提案案件番号枝番＿番号 AND a.提案連続＿番号 = d.提案連続＿番号
+    INNER JOIN 提案．契約者 b ON a.契約管理区分キー＿英数カナ = d.契約管理区分キー＿英数カナ AND a.提案設計データバージョン番号＿数 = d.提案設計データバージョン番号＿数 AND a.提案案件＿番号 =
+    b.提案案件＿番号 AND a.提案案件番号枝番＿番号 = b.提案案件番号枝番＿番号 AND a.提案連続＿番号 = d.提案連続＿番号
+    WHERE 1=1
+    ` }}
+    {{if ne .req.AnkenNumber ""}}
+       {{$SQL = (print $SQL " AND a.提案案件＿番号 LIKE '%" .req.AnkenNumber "%'")}}
+    {{end}}
+    {{if ne .req.PolicyHolderName ""}}
+       {{$SQL = (print $SQL " AND b.契約者氏名＿漢字 LIKE '%" .req.PolicyHolderName "%'")}}
+    {{end}}
+    {{if and ( ne .req.PolicyType "全部") ( ne .req.PolicyType "") }}
+      {{$SQL = (print $SQL " AND d.保険契約保険種目＿コード LIKE '" .req.PolicyType "'")}}
+    {{end}}
+
+    {{$SQL = (print $SQL " ORDER BY a.提案案件＿番号 DESC ")}}
+    {{$SQL = (print $SQL " FETCH FIRST " .req.MaxFetchRows " ROWS ONLY ")}}
+
+    {{$SQL_P := L2P_SQL $SQL }}
+<PRE>
+    {{$SQL}}
+</PRE>
+    <HR SIZE=1 NOSHADE>
+    <FORM NAME='DFORM' METHOD='GET' ACTION='/teianList'>
+        <INPUT TYPE="submit" VALUE="提案DB詳細" CLASS='button' onClick="setFormAction('/teianEnquiry');">
+        <INPUT TYPE="submit" VALUE="契約DB一覧" CLASS='button' onClick="setFormAction('/keiyakuList');">
+
+        <INPUT TYPE="submit" VALUE="コードマスタ" CLASS='button' onClick="setFormAction('/codeMasterEnquiry');">
+        <INPUT TYPE="submit" VALUE="データディクショナリ（データ項目一覧）" CLASS='button' onClick="setFormAction('/dataDictionaryEnquiry');">
+        <h3>・提案エンティティ</h3>
+        {{buildHTMLTablefromDB $SQL_P .htmlTableCallBack}}
+    </FORM>
+</BODY>
+
+</HTML>

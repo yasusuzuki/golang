@@ -1,0 +1,53 @@
+{
+  "DB_SERVER_PRODUCT": "DB2", /* "DB2" "ODBC", LOCAL_SQLITE*/
+
+  "DBConnection":
+    [
+    {
+      "ENV": "環境　１",
+      "HOSTNAME": "### DB2のIPアドレスをここに入力する ####",
+      "DATABASE": "### DB2のデータベース名をここに入力する ####",
+      "PORT": "### DB2のポートをここに入力する ####",
+      "SCHEMA": "### DB2の初期スキーマをここに入力する ####",
+      "UID": "### DB2の接続ユーザIDをここに入力する ####",
+      "PWD": "### DB2の接続パスワードをここに入力する ####"
+    },
+    {
+      "ENV": "環境　２",
+      "HOSTNAME": "### DB2のIPアドレスをここに入力する ####",
+      "DATABASE": "### DB2のデータベース名をここに入力する ####",
+      "PORT": "### DB2のポートをここに入力する ####",
+      "SCHEMA": "### DB2の初期スキーマをここに入力する ####",
+      "UID": "### DB2の接続ユーザIDをここに入力する ####",
+      "PWD": "### DB2の接続パスワードをここに入力する ####"
+    }
+  ],
+/*
+  //SQLite3用
+  "DBConnection": [
+    {
+      "ENV": "SQLite 環境１",
+      "DATABASE": "./data/test.db"
+    }
+  ],
+  */
+/*
+  //ODBC経由のAccess用
+  "DBConnection": [
+    {
+      "ENV": "Access用　環境１",
+      "DATABASE": "./data/archive/test.accdb"
+    }
+  ],
+*/
+
+/**********************************************************
+                  各種データファイルのファイルパス
+  ***********************************************************/
+  /*データディクショナリのデータ項目一覧をダウンロードし、データ項目だけ抜粋し、UTF-8で保存したもの*/
+  "DataDictionaryFilePath" : "./data/data_dictionary.csv",
+  //"XXXX_テーブル一覧.xlsx"から、テーブルの論理名と物理名を抜粋し、UTF-8で保存したもの
+  "DBTableListFilePath": "./data/db_tables.csv",
+  /*データディクショナリのコード一覧ダウンロードし、データ項目だけ抜粋し、UTF-8で保存したもの*/
+  "CodeMasterFilePath": "./data/codemaster.csv"
+}

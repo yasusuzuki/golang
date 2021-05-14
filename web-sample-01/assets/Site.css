@@ -42,7 +42,6 @@ td a, td a:link, td a:active, td a:hover, td a:visited {
   text-decoration: underline;
 }
 
-
 /* Data Table Styles */
 
 .DataTable {
@@ -76,7 +75,9 @@ td a, td a:link, td a:active, td a:hover, td a:visited {
 .DataTable tr th {
   text-align: center;
   font-weight: bold;
-  white-space: nowrap;
+ /* white-space: nowrap; */
+  min-width: 75px;
+  max-width: 100px;
   vertical-align: middle;
 /*  background-color: #BEC8D1; */
   background-color: #DCE1E5;
@@ -93,14 +94,9 @@ td a, td a:link, td a:active, td a:hover, td a:visited {
   padding-bottom: 2px;
   padding-left: 4px;
 }
-.DataTable tr th.red {
-  background-color: #F38C4D;
-}
-.DataTable tr th.center {
-  text-align: center;
-}
-.DataTable tr th.right {
-  text-align: right;
+th a, th a:link, th a:active, th a:hover, th a:visited {
+  color: steelblue;
+  text-decoration: underline;
 }
 
 
@@ -118,132 +114,9 @@ td a, td a:link, td a:active, td a:hover, td a:visited {
   padding-bottom: 1px;
   padding-left: 4px;
 }
-.DataTable tr td.center {
-  text-align: center;
-}
-.DataTable tr td.right {
-  text-align: right;
-}
-.DataTable tr td.red {
-  background-color: #F3EEE7;
-}
-.DataTable tr td.grey {
-  background-color: #E0E0E0;
-}
-.DataTable tr td.wrap {
-  white-space: normal;
-}
-
-
 
 .NULL {
   color: #B0B0B0;
-}
-
-
-/* Style for Event Code Table */
-
-.EvntCode {
-  font-family: Verdana, serifSansSerifMonospace,sans-serif;
-  font-size: 11px;
-  border: 1px solid #666666;
-  border-collapse: collapse;
-  border-spacing: 0px;
-}
-.EvntCode tr {
-  line-height: 125%;
-  background-color: #F3EEE7;
-}
-.EvntCode tr td {
-  text-align: left;
-  vertical-align: top;
-  white-space: nowrap;
-  font-weight: normal;
-  color: #303030;
-
-  border: 1px solid #666666;
-  border-collapse: collapse;
-  padding-top: 1px;
-  padding-right: 4px;
-  padding-bottom: 1px;
-  padding-left: 4px;
-}
-
-.EvntCode tr td a,
-.EvntCode tr td a:link,
-.EvntCode tr td a:active,
-.EvntCode tr td a:visited {
-  font-family: Verdana, serifSansSerifMonospace,sans-serif;
-  text-decoration: none;
-  font-size: 11px;
-  color: #303030;
-}
-
-.EvntCode tr td a:hover {
-  text-decoration: none;
-  color: red;
-}
-
-
-/* Style for Process Code Table */
-
-.ProcCode {
-  font-family: Verdana, serifSansSerifMonospace,sans-serif;
-  font-weight: normal;
-  font-size: 12px;
-
-  border: 1px solid #666666;
-  border-collapse: collapse;
-  border-spacing: 0px;
-}
-
-.ProcCode tr {
-  line-height: 125%;
-}
-
-.ProcCode tr th {
-  text-align: left;
-  vertical-align: top;
-  white-space: nowrap;
-  color: #303030;
-  background-color: #B3CEB7;
-
-  border: 1px solid #666666;
-  border-collapse: collapse;
-  padding-top: 1px;
-  padding-right: 4px;
-  padding-bottom: 1px;
-  padding-left: 4px;
-}
-.ProcCode tr td {
-  text-align: left;
-  vertical-align: top;
-  white-space: nowrap;
-  color: #303030;
-  background-color: #F3EEE7;
-
-  border: 1px solid #666666;
-  border-collapse: collapse;
-  padding-top: 1px;
-  padding-right: 4px;
-  padding-bottom: 1px;
-  padding-left: 4px;
-}
-
-
-.ProcCode tr td a,
-.ProcCode tr td a:link,
-.ProcCode tr td a:active,
-.ProcCode tr td a:visited {
-  font-family: Verdana, serifSansSerifMonospace,sans-serif;
-  text-decoration: none;
-  font-size: 11px;
-  color: #303030;
-}
-
-.ProcCode tr td a:hover {
-  text-decoration: none;
-  color: red;
 }
 
 
@@ -340,3 +213,16 @@ textarea:focus {
 	padding-left: 5px;
 }
 
+
+pre {
+    /* Mozilla */
+    white-space: -moz-pre-wrap;
+    /* Opera 4-6 */
+    white-space: -pre-wrap;
+    /* Opera 7 */
+    white-space: -o-pre-wrap;
+    /* CSS3 */
+    white-space: pre-line;
+    /* IE 5.5+ */
+    word-wrap: break-word;
+}
