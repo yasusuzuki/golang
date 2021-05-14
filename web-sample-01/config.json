@@ -1,6 +1,5 @@
 {
-  "DB_SERVER_PRODUCT": "DB2", /* "DB2" "ODBC", LOCAL_SQLITE*/
-
+  "DB_SERVER_PRODUCT": "DB2", /* "DB2" | "ACCESS_VIA_ODBC" | "SQLITE" */
   "DBConnection":
     [
     {
@@ -22,8 +21,8 @@
       "PWD": "### DB2の接続パスワードをここに入力する ####"
     }
   ],
+//  SQLite3用
 /*
-  //SQLite3用
   "DBConnection": [
     {
       "ENV": "SQLite 環境１",
@@ -31,8 +30,8 @@
     }
   ],
   */
+//  ODBC経由のAccess用
 /*
-  //ODBC経由のAccess用
   "DBConnection": [
     {
       "ENV": "Access用　環境１",

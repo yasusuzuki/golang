@@ -30,7 +30,7 @@ func renderKeiyakuList(ctx *gin.Context) {
 	defer CurrentDB.DBConnection.Close()
 
 	sql := ""
-	if Config.DB_SERVER_PRODUCT == "LOCAL_ODBC" {
+	if Config.DB_SERVER_PRODUCT == "ACCESS_VIA_ODBC" {
 		sql += "SELECT a.[証券＿番号],a.保険契約明細区分＿コード,a.保険契約消滅変更当否＿フラグ,a.[契約始期年月日＿日付],b.[契約者氏名＿漢字], c.[自動車保険契約種目ノンフリートフリート区分＿コード], c.[自動車保険契約種目フリート契約形態＿コード],a.[団体＿コード],a.[代理店＿コード],a.[代理店サブ＿コード],a.[契約保険期間年＿数]"
 		sql += " FROM 保険契約 a "
 		sql += " INNER JOIN ( [保険契約．契約者] b INNER JOIN [保険契約種目＿自動車] c ON b.[証券＿番号] = c.[証券＿番号] AND b.[契約計上枝番＿番号] = c.[契約計上枝番＿番号]) "
@@ -60,7 +60,7 @@ func renderKeiyakuList(ctx *gin.Context) {
 	if req.MaxFetchRows == "" {
 		req.MaxFetchRows = "100"
 	}
-	if Config.DB_SERVER_PRODUCT != "LOCAL_ODBC" {
+	if Config.DB_SERVER_PRODUCT != "ACCESS_VIA_ODBC" {
 		//FETCH FIRST doesn't work in ODBC..
 		sql += " FETCH FIRST " + req.MaxFetchRows + " ROWS ONLY "
 	}

@@ -401,7 +401,7 @@ func initL2PDictionary() {
 	//fmt.Printf("%#v", L2PDictionary)
 }
 func L2P(logicalName string) string {
-	if Config.DB_SERVER_PRODUCT == "ODBC" || Config.DB_SERVER_PRODUCT == "SQLITE" {
+	if Config.DB_SERVER_PRODUCT == "ACCESS_VIA_ODBC" || Config.DB_SERVER_PRODUCT == "SQLITE" {
 		return logicalName
 	}
 	if L2PDictionary[logicalName] != "" {
@@ -413,7 +413,7 @@ func L2P(logicalName string) string {
 	}
 }
 func P2L(physicalName string) string {
-	if Config.DB_SERVER_PRODUCT == "ODBC" || Config.DB_SERVER_PRODUCT == "SQLITE" {
+	if Config.DB_SERVER_PRODUCT == "ACCESS_VIA_ODBC" || Config.DB_SERVER_PRODUCT == "SQLITE" {
 		return physicalName
 	}
 	if P2LDictionary[physicalName] != "" {
@@ -433,11 +433,11 @@ var CurrentDB struct {
 func ConnectDB(env string) error {
 	var err error
 
-	var connProperties ConnectionProperties
-	connProperties = *Config.DBConnProps[0]
-	for _, v := range Config.DBConnProps {
+	var connProperties *ConnectionPropertiesDef
+	connProperties = Config.ConnectionProperties[0]
+	for _, v := range Config.ConnectionProperties {
 		if v.ENV == env {
-			connProperties = *v
+			connProperties = v
 		}
 	}
 	log.Print("CONNECTING TO ..[" + connProperties.ENV + "]")
@@ -445,7 +445,7 @@ func ConnectDB(env string) error {
 	var conn *sql.DB
 	if Config.DB_SERVER_PRODUCT == "SQLITE" {
 		conn, err = sql.Open("sqlite3", "./data/keiyaku.db")
-	} else if Config.DB_SERVER_PRODUCT == "ODBC" {
+	} else if Config.DB_SERVER_PRODUCT == "ACCESS_VIA_ODBC" {
 		fmt.Printf("Connecting to DRIVER={Microsoft Access Driver (*.mdb, *.accdb)};DBQ=" + connProperties.DATABASE + ";\n")
 		conn, err = sql.Open("odbc", "DRIVER={Microsoft Access Driver (*.mdb, *.accdb)};DBQ="+connProperties.DATABASE+";")
 	} else if Config.DB_SERVER_PRODUCT == "DB2" {
@@ -477,7 +477,7 @@ func ConnectDB(env string) error {
 	return nil
 }
 
-type ConnectionProperties struct {
+type ConnectionPropertiesDef struct {
 	ENV      string `json:"ENV"`
 	HOSTNAME string `json:"HOSTNAME"`
 	DATABASE string `json:"DATABASE"`
@@ -487,13 +487,15 @@ type ConnectionProperties struct {
 	SCHEMA   string `json:"SCHEMA"`
 }
 
-var Config struct {
-	DB_SERVER_PRODUCT      string                  `json:"DB_SERVER_PRODUCT"`
-	DBConnProps            []*ConnectionProperties `json:"DBConnection"`
-	DataDictionaryFilePath string                  `json:"DataDictionaryFilePath"`
-	DBTableListFilePath    string                  `json:"DBTableListFilePath"`
-	CodeMasterFilePath     string                  `json:"CodeMasterFilePath"`
+type ConfigDef struct {
+	DB_SERVER_PRODUCT      string                     `json:"DB_SERVER_PRODUCT"`
+	ConnectionProperties   []*ConnectionPropertiesDef `json:"DBConnection"`
+	DataDictionaryFilePath string                     `json:"DataDictionaryFilePath"`
+	DBTableListFilePath    string                     `json:"DBTableListFilePath"`
+	CodeMasterFilePath     string                     `json:"CodeMasterFilePath"`
 }
+
+var Config ConfigDef
 
 func loadConfigFile() {
 	jsonStringWithComments, err := ioutil.ReadFile("./config.json")
@@ -507,12 +509,12 @@ func loadConfigFile() {
 	}
 
 	fmt.Printf("%+v\n", Config)
-	fmt.Printf("%+v\n", Config.DBConnProps[0])
+	fmt.Printf("%+v\n", Config.ConnectionProperties[0])
 }
 
 func ListEnvironment() []string {
 	var dblist []string
-	for _, v := range Config.DBConnProps {
+	for _, v := range Config.ConnectionProperties {
 		dblist = append(dblist, v.ENV)
 	}
 	return dblist

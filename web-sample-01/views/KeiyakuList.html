@@ -43,13 +43,13 @@
         {{.SQL}}
     </PRE>
     <HR SIZE=1 NOSHADE>
+    <INPUT TYPE="submit" VALUE="契約DB詳細" CLASS='button' onClick="setFormAction('/keiyakuEnquiry');">
+    <INPUT TYPE="submit" VALUE="コードマスタ" CLASS='button' onClick="setFormAction('/codeMasterEnquiry');">
+    <INPUT TYPE="submit" VALUE="データディクショナリ（データ項目一覧）" CLASS='button' onClick="setFormAction('/dataDictionaryEnquiry');">
+    <INPUT TYPE="submit" VALUE="提案DB一覧" CLASS='button' onClick="setFormAction('/teianList');">
+    <INPUT DISABLED="DISABLED" TYPE="submit" VALUE="契約DB履歴一覧[開発中]" CLASS='button' onClick="setFormAction('/keiyakuHistory');">
+    <INPUT DISABLED="DISABLED" TYPE="submit" VALUE="証券書類作成DB[開発中]" CLASS='button' onClick="setFormAction('/shokenSyoruiSakuseiEnquiry');">
     <FORM NAME='DFORM' METHOD='GET' ACTION='/KeiyakuList'>
-        <INPUT TYPE="submit" VALUE="契約DB詳細" CLASS='button' onClick="setFormAction('/keiyakuEnquiry');">
-        <INPUT TYPE="submit" VALUE="コードマスタ" CLASS='button' onClick="setFormAction('/codeMasterEnquiry');">
-        <INPUT TYPE="submit" VALUE="データディクショナリ（データ項目一覧）" CLASS='button' onClick="setFormAction('/dataDictionaryEnquiry');">
-        <INPUT TYPE="submit" VALUE="提案DB一覧" CLASS='button' onClick="setFormAction('/teianList');">
-        <INPUT DISABLED="DISABLED" TYPE="submit" VALUE="契約DB履歴一覧[開発中]" CLASS='button' onClick="setFormAction('/keiyakuHistory');">
-        <INPUT DISABLED="DISABLED" TYPE="submit" VALUE="証券書類作成DB[開発中]" CLASS='button' onClick="setFormAction('/shokenSyoruiSakuseiEnquiry');">
         <h3>・契約エンティティ</h3>
         {{buildHTMLTablefromDB .SQL .htmlTableCallBack}}
     </FORM>

@@ -65,15 +65,14 @@
 
     {{$SQL_P := L2P_SQL $SQL }}
 <PRE>
-    {{$SQL}}
+    {{$SQL_P}}
 </PRE>
     <HR SIZE=1 NOSHADE>
+    <INPUT TYPE="submit" VALUE="提案DB詳細" CLASS='button' onClick="setFormAction('/teianEnquiry');">
+    <INPUT TYPE="submit" VALUE="契約DB一覧" CLASS='button' onClick="setFormAction('/keiyakuList');">
+    <INPUT TYPE="submit" VALUE="コードマスタ" CLASS='button' onClick="setFormAction('/codeMasterEnquiry');">
+    <INPUT TYPE="submit" VALUE="データディクショナリ（データ項目一覧）" CLASS='button' onClick="setFormAction('/dataDictionaryEnquiry');">
     <FORM NAME='DFORM' METHOD='GET' ACTION='/teianList'>
-        <INPUT TYPE="submit" VALUE="提案DB詳細" CLASS='button' onClick="setFormAction('/teianEnquiry');">
-        <INPUT TYPE="submit" VALUE="契約DB一覧" CLASS='button' onClick="setFormAction('/keiyakuList');">
-
-        <INPUT TYPE="submit" VALUE="コードマスタ" CLASS='button' onClick="setFormAction('/codeMasterEnquiry');">
-        <INPUT TYPE="submit" VALUE="データディクショナリ（データ項目一覧）" CLASS='button' onClick="setFormAction('/dataDictionaryEnquiry');">
         <h3>・提案エンティティ</h3>
         {{buildHTMLTablefromDB $SQL_P .htmlTableCallBack}}
     </FORM>

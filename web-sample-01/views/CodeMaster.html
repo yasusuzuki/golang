@@ -30,9 +30,8 @@
         <INPUT TYPE='SUBMIT' VALUE='GET' CLASS='getbutton'>
     </FORM>
     <HR SIZE=1 NOSHADE>
+    <INPUT TYPE="submit" VALUE="契約DB一覧" CLASS='button' onClick="setFormAction('/keiyakuList');">
     <FORM NAME='DFORM' METHOD='GET' ACTION='/codeMasterEnquiry'>
-       <INPUT TYPE="submit" VALUE="契約DB一覧" CLASS='button' onClick="setFormAction('/keiyakuList');">
-
        <h3>・コードマスタ</h3>
         {{.HTMLTable}}
     </FORM>
