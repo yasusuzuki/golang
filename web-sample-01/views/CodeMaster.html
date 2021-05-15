@@ -6,33 +6,36 @@
     <meta name="description" content="web-keiyaku-viewer_v1.0">
     <title>web-keiyaku-viewer_v1.0</title>
     <link rel="stylesheet" href="/assets/Site.css">
-    <script>
-        //"契約DB詳細"ボタンや”事故DB詳細"ボタンを押下時に、遷移先をボタンに応じて動的に変更する機能
-        //前提：　<FORM>のNAMEが”DFORM"でなければならない.
-        function setFormAction(func) { document.DFORM.action = func; }
-    </script>
+    <script type="text/javascript" src="/assets/script.js"></script>
 </head>
 
 <body>
     <h1> コードマスタ </h1>
-        <font color='lightgrey'>※config.jsonの[CodeMasterFilePath]で指定したファイルの内容を表示しています。最新ではないので注意。</font>
-    <FORM NAME='_FORM_codeMaster_' METHOD='GET' ACTION='/codeMasterEnquiry'>
-        <TABLE CELLSPACING='4' BORDER='0'>
-            <TR ALIGN='RIGHT' VALIGN='TOP' NOWRAP>
-                <TD>ドメイン(*)：{{.formDomain}}</TD>
-                <TD>コード値:{{.formCodeValue}}</TD>
+    <FORM NAME='QFORM' METHOD='GET' ACTION='/codeMasterEnquiry'>
+        <TABLE CLASS='QueryForm'>
+            <TR>
+                <TD>ドメイン(*)：</TD>
+                <TD>{{.formDomain}}</TD>
+                <TD>コード値:</TD>
+                <TD>{{.formCodeValue}}</TD>
             </TR>
-            <TR ALIGN='RIGHT' VALIGN='TOP' NOWRAP>
-                <TD>コード名称(*):{{.formCodeName}}</TD>
-                <TD>MAX:{{.formMaxFetchRows}}</TD>
+            <TR>
+                <TD>コード名称(*):</TD>
+                <TD>{{.formCodeName}}</TD>
+                <TD>MAX:</TD>
+                <TD>{{.formMaxFetchRows}}</TD>
             </TR>
         </TABLE>
         <INPUT TYPE='SUBMIT' VALUE='GET' CLASS='getbutton'>
     </FORM>
     <HR SIZE=1 NOSHADE>
-    <INPUT TYPE="submit" VALUE="契約DB一覧" CLASS='button' onClick="setFormAction('/keiyakuList');">
-    <FORM NAME='DFORM' METHOD='GET' ACTION='/codeMasterEnquiry'>
+    <A HREF='/keiyakuList' CLASS='button_face'>契約DB一覧</A>
+
+    <FORM NAME='DFORM' METHOD='GET' ACTION='DUMMY'>
        <h3>・コードマスタ</h3>
+        <DIV CLASS="message_info">
+        ※config.jsonの[CodeMasterFilePath]で指定したファイルの内容を表示しています。最新ではないので注意。
+        </DIV>
         {{.HTMLTable}}
     </FORM>
 </body>

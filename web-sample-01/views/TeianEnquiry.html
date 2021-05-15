@@ -6,27 +6,25 @@
     <meta name="description" content="web-keiyaku-viewer_v1.0">
     <title>web-keiyaku-viewer_v1.0</title>
     <link rel="stylesheet" href="/assets/Site.css">
-    <script>
-        //"契約DB詳細"ボタンや”事故DB詳細"ボタンを押下時に、遷移先をボタンに応じて動的に変更する機能
-        //前提：　<FORM>のNAMEが”DFORM"でなければならない.
-        function setFormAction(func) { document.DFORM.action = func; }
-    </script>
+    <script type="text/javascript" src="/assets/script.js"></script>
 </head>
 
-<body>
-    <h1> 提案DB詳細 </h1>
-    <FORM NAME='_FORM_teianEnquiry_' METHOD='GET' ACTION='/teianEnquiry'>
-        <TABLE CELLSPACING='4' BORDER='0'>
-            <TR ALIGN='RIGHT' VALIGN='TOP' NOWRAP>
-                <TD>提案番号：{{.formAnkenNumber}}</TD>
-                <TD>冗長モード: {{.formVerboseMode}}</TD>
+<BODY>
+    <H1> 提案DB詳細 </H1>
+    <FORM NAME='QFORM' METHOD='GET' ACTION='/teianEnquiry'>
+        <TABLE  CLASS='QueryForm'>
+            <TR>
+                <TD>提案番号：</TD>
+                <TD>{{.formAnkenNumber}}</TD>
+                <TD>冗長モード: </TD>
+                <TD>{{.formVerboseMode}}</TD>
            </TR>
         </TABLE>
         <INPUT TYPE='SUBMIT' VALUE='GET' CLASS='getbutton'>
     </FORM>
     <HR SIZE=1 NOSHADE>
-    <FORM NAME='DFORM' METHOD='GET' ACTION='/'>
-        <INPUT TYPE="submit" VALUE="提案DB一覧" CLASS='button' onClick="setFormAction('/teianList');">
+    <A HREF='/teianList' CLASS='button_face'>提案DB一覧</A>
+    <FORM NAME='DFORM' METHOD='GET' ACTION='DUMMY'>
         <DIV STYLE='display:flex;flex-direction:row;justify-content: space-between;width:400px'>
         <A HREF='#提案' style='color:gray;text-decoration:none'>提案↓</A>
          <A HREF='#提案種目' style='color:gray;text-decoration:none'>提案種目↓</A>
@@ -36,16 +34,16 @@
 
         {{$callback := .htmlTableCallBack}}
         {{range $idx,$item := .SQLs}}
-        <h3 id='{{$item.LogicalTableName}}'>・ {{$item.LogicalTableName}}</h3>
+        <H3 id='{{$item.LogicalTableName}}'>・ {{$item.LogicalTableName}}</H3>
             {{if eq $item.Sql "NO_PHYSICAL_TABLE"}}
-                <div>物理テーブルはなし</div>
+                <DIV class='message_info'>物理テーブルはなし</DIV>
             {{else if eq $item.Sql "NO_ANKEN_NUMBER"}}
-                <div>案件番号なし</div>
+                <DIV class='message_info'>案件番号なし</DIV>
             {{else}}
-                {{buildHTMLTablefromDB $item.Sql $callback}}
+                {{buildHTMLTablefromDB $.conn $item.Sql $callback}}
             {{end}}
         {{end}}
     </FORM>
-</body>
+</BODY>
 
-</html>
+</HTML>

@@ -12,6 +12,7 @@ import (
 	"os"
 	"strings"
 	"time"
+	"unicode"
 	"unicode/utf8"
 
 	"github.com/gin-gonic/gin"
@@ -30,14 +31,15 @@ import (
 	_ "github.com/ibmdb/go_ibm_db"
 )
 
-type htmlTableCallBack func(key string, val string, columns []string, values DBRecord) string
-
 /**  buildHTMLTablefromDB()
 * 戻り値をStringにすると、ＨＴＭＬタグもそのまま表示されてしまう。そのため、戻り値は
 * template.HTML型で返す必要がある
 * https://stackoverflow.com/questions/41931082/inserting-html-to-golang-template
  */
 func rtrim(s interface{}) string {
+	return strings.TrimRightFunc(fmt.Sprint(s), unicode.IsSpace)
+}
+func trim(s interface{}) string {
 	return strings.TrimSpace(fmt.Sprint(s))
 }
 
@@ -59,6 +61,58 @@ func truncate(s string) string {
 	}
 }
 */
+
+var CurrentDB struct {
+	Environment string
+}
+
+func ConnectDB(env string) (*sql.DB, error) {
+	var err error
+	var connProperties *ConnectionPropertiesDef
+	connProperties = Config.ConnectionProperties[0]
+	for _, v := range Config.ConnectionProperties {
+		if v.ENV == env {
+			connProperties = v
+		}
+	}
+	log.Print("CONNECTING TO ..[" + connProperties.ENV + "]")
+
+	var conn *sql.DB
+	if Config.DB_SERVER_PRODUCT == "SQLITE" {
+		conn, err = sql.Open("sqlite3", connProperties.DATABASE)
+	} else if Config.DB_SERVER_PRODUCT == "ACCESS_VIA_ODBC" {
+		fmt.Printf("Connecting to DRIVER={Microsoft Access Driver (*.mdb, *.accdb)};DBQ=" + connProperties.DATABASE + ";\n")
+		conn, err = sql.Open("odbc", "DRIVER={Microsoft Access Driver (*.mdb, *.accdb)};DBQ="+connProperties.DATABASE+";")
+	} else if Config.DB_SERVER_PRODUCT == "DB2" {
+		fmt.Printf("Connecting to HOSTNAME=%s;PORT=%s;DATABASE=%s;CurrentSchema=%s;UID=%s;PWD=#######\n",
+			connProperties.HOSTNAME,
+			connProperties.DATABASE,
+			connProperties.PORT,
+			connProperties.SCHEMA,
+			connProperties.UID,
+		)
+		conn, err = sql.Open("go_ibm_db",
+			fmt.Sprintf("HOSTNAME=%s;DATABASE=%s;PORT=%s;CurrentSchema=%s;UID=%s;PWD=%s",
+				connProperties.HOSTNAME,
+				connProperties.DATABASE,
+				connProperties.PORT,
+				connProperties.SCHEMA,
+				connProperties.UID,
+				connProperties.PWD,
+			))
+	}
+	if err != nil {
+		log.Printf("DB connection failed")
+		return nil, err
+	}
+	log.Print("DB CONNECTED ")
+
+	//TODO: 今はグローバル変数にDBコネクションを設定しているが、セッションに保存したい
+	//CurrentDB.DBConnection = conn
+	CurrentDB.Environment = connProperties.ENV
+	return conn, nil
+}
+
 var DBSystemColumns map[string]bool = map[string]bool{
 	"証券番号枝番＿番号":        true,
 	"契約管理区分キー＿英数カナ":    true,
@@ -82,10 +136,13 @@ var DBSystemColumns map[string]bool = map[string]bool{
 	"リレーション用契約計上枝番＿番号": true,
 }
 
-func buildHTMLTablefromDB(sql string, callback map[string]htmlTableCallBack) template.HTML {
-	columns, records, err := DBAccess(sql)
+type htmlTableCallBack func(key string, val string, columns []string, values DBRecord) string
+
+func buildHTMLTablefromDB(conn *sql.DB, sql string, callback map[string]htmlTableCallBack) template.HTML {
+	columns, records, err := DBQuery(conn, sql)
 	if err != nil {
-		return template.HTML(fmt.Sprintf("<pre>%s</pre><div class='message_error'>%s</div>", sql, err.Error()))
+		log.Print(err.Error())
+		return template.HTML(fmt.Sprintf("<div class='message_error'>%s</div>", err.Error()))
 	}
 	var hideDBSystemColumns bool = true
 	var displaySQL bool = false
@@ -94,6 +151,9 @@ func buildHTMLTablefromDB(sql string, callback map[string]htmlTableCallBack) tem
 		hideDBSystemColumns = false
 		displaySQL = true
 		displayPhysicalName = true
+	}
+	if callback["HIDE_DB_SYSTEM_COLUMNS_FLAG"] != nil && callback["HIDE_DB_SYSTEM_COLUMNS_FLAG"]("", "", nil, nil) == "off" {
+		hideDBSystemColumns = false
 	}
 	html := ""
 	if displaySQL {
@@ -104,7 +164,9 @@ func buildHTMLTablefromDB(sql string, callback map[string]htmlTableCallBack) tem
 	html += "<TABLE CELLSPACING=0 CLASS='DataTable'>\n"
 
 	html += "<TR>"
-	//DBrecordに存在していない項目をTableに追加したい場合
+	//"H_PREPEND"は、DBrecordに存在していない列を、表の列として追加するためのもの
+	//ヘッダーとデータ部で列数がずれるといけないので、"H_PREPEND"が使用されていなくても
+	//"PREPEND"が使用されていれば、ヘッダーの列を追加してあげる。
 	if callback["PREPEND"] != nil {
 		if callback["H_PREPEND"] != nil {
 			html += "<TH>" + callback["H_PREPEND"]("", "", columns, nil) + "</TH>"
@@ -112,26 +174,27 @@ func buildHTMLTablefromDB(sql string, callback map[string]htmlTableCallBack) tem
 			html += "<TH></TH>"
 		}
 	}
+	//表のヘッダーを出力していく。ヘッダーは、SQL結果のrows.Columns()を源泉とする。
 	for _, column := range columns {
 		if hideDBSystemColumns && DBSystemColumns[column] {
 			continue
 		}
 		physicalColumnName := ""
 		if displayPhysicalName {
-			physicalColumnName = fmt.Sprintf("<BR><FONT COLOR='lightgrey'>[%s]</FONT>", L2P(column))
+			physicalColumnName = fmt.Sprintf("<BR><SPAN CLASS='PHYSICAL_COLUMN_NAME'>[%s]</SPAN>", L2P(column))
 		}
 		if callback["H_"+column] != nil {
 			html += "<TH>" + callback[column](column, "", columns, nil) + "</TH>"
 		} else if strings.Contains(column, "＿コード") || strings.Contains(column, "_CD") {
 			domain := findDomain(column)
 			if domain != "" {
-				html += "<TH STYLE='max-width:100px'><A HREF='/codeMasterEnquiry?Domain=" + domain + "'>" + column + "</A>" + physicalColumnName + "</TH>"
+				html += "<TH><A HREF='/codeMasterEnquiry?Domain=" + domain + "'>" + column + "</A>" + physicalColumnName + "</TH>"
 			} else {
 				html += "<TH>" + column + physicalColumnName + "</TH>"
 			}
 		} else {
 			if DBSystemColumns[column] {
-				html += "<TH style='background-color:darkgray'>" + column + physicalColumnName + "</TH>"
+				html += "<TH class='SYSTEM_COLUMN'>" + column + physicalColumnName + "</TH>"
 			} else {
 				html += "<TH>" + column + physicalColumnName + "</TH>"
 			}
@@ -139,31 +202,32 @@ func buildHTMLTablefromDB(sql string, callback map[string]htmlTableCallBack) tem
 	}
 	html += "</TR>\n"
 
+	//表のデータ部を出力していく。
 	for _, record := range records {
 		html += "<TR>"
-		//DBrecordに存在していない項目をTableに追加したい場合
+		//"PREPEND"は、DBrecordに存在していない列を、表の列として追加するためのもの
 		if callback["PREPEND"] != nil {
 			html += "<TD>" + callback["PREPEND"]("", "", columns, record) + "</TD>"
 		}
+		//DBRecordに存在する列を、順番に表のセルとして出力していく
 		for _, column := range columns {
 			if hideDBSystemColumns && DBSystemColumns[column] {
 				continue
 			}
 			orig_val := record[column]
 			val := rtrim(orig_val)
-
+			//"＿コード"で終わる列名はコードマスタ対象データ項目とみなし、コード値名称を添えて表示
 			if strings.Contains(column, "＿コード") {
 				domain := findDomain(column)
 				if domain != "" && CodeMaster[domain][val] != "" {
-					val = val + "<font color='grey'>[" + CodeMaster[domain][val] + "]</font>"
+					val = val + "<SPAN CLASS='CODE_NAME'>[" + CodeMaster[domain][val] + "]</SPAN>"
 				}
 			}
 			if callback[column] != nil {
-				//DBrecordに関係なくTableに追加した列があれば表示
 				html += "<TD>" + callback[column](column, val, columns, record) + "</TD>"
 			} else {
 				if record[column] == nil {
-					html += "<TD>" + "<font color='grey'>NULL</font>" + "</TD>"
+					html += "<TD><SPAN CLASS='NULL'>NULL</SPAN></TD>"
 				} else {
 					html += "<TD>" + val + "</TD>"
 				}
@@ -182,7 +246,7 @@ func buildHTMLTablefromDB(sql string, callback map[string]htmlTableCallBack) tem
 */
 type DBRecord map[string]interface{}
 
-func DBAccess(sqlString string) ([]string, []DBRecord, error) {
+func DBQuery(conn *sql.DB, sqlString string) ([]string, []DBRecord, error) {
 	//make([]map[string]interface{},0,5)はエラーだが、
 	//なぜか以下だとうまくいく
 	//    type DBRecord map[string]interface{}
@@ -191,21 +255,23 @@ func DBAccess(sqlString string) ([]string, []DBRecord, error) {
 	array := make([]DBRecord, 0, 5)
 	var columns []string
 	log.Print("RUN QUERY --- " + sqlString)
-	rows, err := CurrentDB.DBConnection.Query(sqlString)
+	rows, err := conn.Query(sqlString)
 	if err != nil {
 		return nil, nil, err
 	}
 	log.Print("DONE Query")
 	defer rows.Close()
 
+	//カラム名を取得する
 	columns, err = rows.Columns()
 	if err != nil {
-		panic(err)
+		return nil, nil, err
 	}
 	for i := 0; i < len(columns); i++ {
 		columns[i] = P2L(columns[i])
 	}
 
+	//データ行を取得する
 	for rows.Next() {
 		var row = make([]interface{}, len(columns))
 		var rowp = make([]interface{}, len(columns))
@@ -213,19 +279,17 @@ func DBAccess(sqlString string) ([]string, []DBRecord, error) {
 			rowp[i] = &row[i]
 		}
 
-		rows.Scan(rowp...)
+		err := rows.Scan(rowp...)
+		if err != nil {
+			return nil, nil, err
+		}
 
 		rowMap := make(map[string]interface{})
 		for i, col := range columns {
+			//log.Printf("data [%s] [%s] [%v]", col, reflect.TypeOf(row[i]), row[i])
 			switch row[i].(type) {
 			case []byte:
-				//log.Printf("row data [%s] [%v]", col, row[i])
 				row[i] = string(row[i].([]byte))
-			//提案番号が0000064が64になってしまうので、以下はコメントアウト
-			//num, err := strconv.Atoi(row[i].(string))
-			//if err == nil {
-			//	row[i] = num
-			//}
 			case time.Time:
 				if row[i].(time.Time).Format("15:04:05") == "00:00:00" {
 					row[i] = fmt.Sprint(row[i].(time.Time).Format("2006-01-02"))
@@ -234,10 +298,11 @@ func DBAccess(sqlString string) ([]string, []DBRecord, error) {
 				}
 
 			}
-			//log.Printf("data [%s] [%s] [%v]", col, reflect.TypeOf(row[i]), row[i])
+
 			//TODO: 他にいい方法がないか考える
-			//以下のケースで、t2.keyがNULLとなるときがある。この場合にＮＵＬＬで上書きされないように。
+			//以下のケースで、t2.keyがNULLとなるときがある。
 			//select a.*,b.* from t1 LEFT JOIN t2 where t1.key = t2.key
+			//この場合にa.keyをNULLと表示しないようにするため、いったん、以下のコードをいれている。
 			if rowMap[col] == nil {
 				rowMap[col] = row[i]
 			}
@@ -249,10 +314,19 @@ func DBAccess(sqlString string) ([]string, []DBRecord, error) {
 }
 
 func buildInputTextField(fieldName string, value string) template.HTML {
-	return template.HTML("<INPUT TYPE='TEXT' SIZE='33' CLASS='texta' NAME='" + fieldName + "' VALUE='" + value + "'></INPUT>")
+	return template.HTML("<INPUT TYPE='TEXT' CLASS='texta' NAME='" + fieldName + "' VALUE='" + value + "'></INPUT>")
 }
+
+func buildNumberTextField(fieldName string, value string) template.HTML {
+	return template.HTML("<INPUT TYPE='NUMBER' CLASS='texta' NAME='" + fieldName + "' VALUE='" + value + "'></INPUT>")
+}
+
 func buildInputPullDown(fieldName string, optionValues []string, optionNames []string, selected string) template.HTML {
 	html := "<SELECT NAME='" + fieldName + "' onChange=''>"
+	if len(optionValues) != len(optionNames) {
+		log.Printf("エラー：buildInputPullDown() の引数optionValuesとoptionNamesの配列の長さが違います。項目=[%s]", fieldName)
+		return template.HTML("<DIV CLASS='error_message> エラー：buildInputPullDown() の引数optionValuesとoptionNamesの配列の長さが違います。</DIV>")
+	}
 	for i, opt := range optionValues {
 		if opt == selected {
 			html += "<OPTION  VALUE='" + opt + "' SELECTED>" + optionNames[i] + "</OPTION>"
@@ -274,11 +348,12 @@ func buildInputCheckbox(fieldName string, value bool) template.HTML {
 }
 
 var CodeMaster map[string]map[string]string
-var CodeMasterDomainList []string
+var CodeMasterDomainList []string //全ドメインと照合したいCodeMasterEnquiryで利用する。
 
 func findDomain(fieldName string) string {
 	for _, v := range CodeMasterDomainList {
-		if strings.Contains(fieldName, v) {
+		//データ項目名の末尾は、ドメイン名と一致するはず、という前提
+		if strings.HasSuffix(fieldName, v) {
 			return v
 		}
 	}
@@ -299,7 +374,7 @@ func initCodeMaster() {
 		if err != nil {
 			log.Fatal(err)
 		}
-		//log.Print(record)
+		//record[0]はドメイン名。record[1]はコード値。record[5]はコード値名称
 		if CodeMaster[record[0]] == nil {
 			CodeMaster[record[0]] = map[string]string{record[1]: record[5]}
 			CodeMasterDomainList = append(CodeMasterDomainList, record[0])
@@ -316,33 +391,6 @@ var P2LDBTables map[string]string
 var P2LDictionary map[string]string
 
 var DBTables []string //テーブル一覧の順序を保ちたいKeiyakuEnquiryで利用する。
-
-func L2P_SQL(sql_logical string) string {
-	var multiByteCharStart bool
-	var multiByteWord []rune
-	var sql_physical string
-	for _, v := range sql_logical {
-		if v >= utf8.RuneSelf {
-			//マルチバイト文字の場合
-			//https://golang.hateblo.jp/entry/golang-string-byte-rune#%E3%82%B7%E3%83%B3%E3%82%B0%E3%83%AB%E3%83%90%E3%82%A4%E3%83%88%E6%96%87%E5%AD%97%E3%81%A8%E3%83%9E%E3%83%AB%E3%83%81%E3%83%90%E3%82%A4%E3%83%88%E6%96%87%E5%AD%97%E3%81%AE%E5%88%A4%E5%88%A5
-			//log.Print("L2P SQL [" + string(v) + "] MULTIBYTE " + sql_physical)
-			multiByteCharStart = true
-			multiByteWord = append(multiByteWord, v)
-
-		} else if multiByteCharStart && v < utf8.RuneSelf {
-			//一つ前はマルチバイトで、この文字はシングルバイトの場合
-			//log.Print("L2P SQL [" + string(v) + "] MULTIBYTE LAST" + sql_physical)
-			multiByteCharStart = false
-			sql_physical = sql_physical + L2P(string(multiByteWord)) + string(v)
-			multiByteWord = []rune("")
-		} else {
-			//一つ前も、この文字もシングルバイトの場合
-			//log.Print("L2P SQL [" + string(v) + "] SINGLEBYTE" + sql_physical)
-			sql_physical += string(v)
-		}
-	}
-	return sql_physical
-}
 
 func initL2PDictionary() {
 	DBTables = make([]string, 300)
@@ -387,6 +435,7 @@ func initL2PDictionary() {
 		if L2PDictionary[record[0]] != "" {
 			panic("Unexpected duplicate key in L2PDictionary[" + record[0] + "]")
 		}
+		//record[0]が論理名。record[2]が物理名
 		L2PDictionary[record[0]] = record[2]
 	}
 	P2LDBTables = make(map[string]string, 300)
@@ -424,57 +473,29 @@ func P2L(physicalName string) string {
 		return physicalName
 	}
 }
-
-var CurrentDB struct {
-	Environment  string
-	DBConnection *sql.DB
-}
-
-func ConnectDB(env string) error {
-	var err error
-
-	var connProperties *ConnectionPropertiesDef
-	connProperties = Config.ConnectionProperties[0]
-	for _, v := range Config.ConnectionProperties {
-		if v.ENV == env {
-			connProperties = v
+func L2P_SQL(sqlLogical string) string {
+	var multiByteCharStart bool
+	var multiByteWord []rune
+	var sqlPhysical string
+	//論理名で表されているSQL文を1文字づつ解析して、
+	//マルチバイト文字の羅列を１つの論理名とみなして、論物変換していく
+	for _, v := range sqlLogical {
+		if v >= utf8.RuneSelf {
+			//マルチバイト文字の場合
+			//https://golang.hateblo.jp/entry/golang-string-byte-rune#%E3%82%B7%E3%83%B3%E3%82%B0%E3%83%AB%E3%83%90%E3%82%A4%E3%83%88%E6%96%87%E5%AD%97%E3%81%A8%E3%83%9E%E3%83%AB%E3%83%81%E3%83%90%E3%82%A4%E3%83%88%E6%96%87%E5%AD%97%E3%81%AE%E5%88%A4%E5%88%A5
+			multiByteCharStart = true
+			multiByteWord = append(multiByteWord, v)
+		} else if multiByteCharStart && v < utf8.RuneSelf {
+			//一つ前はマルチバイトで、この文字はシングルバイトの場合
+			multiByteCharStart = false
+			sqlPhysical = sqlPhysical + L2P(string(multiByteWord)) + string(v)
+			multiByteWord = []rune("")
+		} else {
+			//一つ前も、この文字もシングルバイトの場合
+			sqlPhysical += string(v)
 		}
 	}
-	log.Print("CONNECTING TO ..[" + connProperties.ENV + "]")
-
-	var conn *sql.DB
-	if Config.DB_SERVER_PRODUCT == "SQLITE" {
-		conn, err = sql.Open("sqlite3", "./data/keiyaku.db")
-	} else if Config.DB_SERVER_PRODUCT == "ACCESS_VIA_ODBC" {
-		fmt.Printf("Connecting to DRIVER={Microsoft Access Driver (*.mdb, *.accdb)};DBQ=" + connProperties.DATABASE + ";\n")
-		conn, err = sql.Open("odbc", "DRIVER={Microsoft Access Driver (*.mdb, *.accdb)};DBQ="+connProperties.DATABASE+";")
-	} else if Config.DB_SERVER_PRODUCT == "DB2" {
-		fmt.Printf("Connecting to HOSTNAME=%s;PORT=%s;DATABASE=%s;CurrentSchema=%s;UID=%s;PWD=#######\n",
-			connProperties.HOSTNAME,
-			connProperties.DATABASE,
-			connProperties.PORT,
-			connProperties.SCHEMA,
-			connProperties.UID,
-		)
-		conn, err = sql.Open("go_ibm_db",
-			fmt.Sprintf("HOSTNAME=%s;DATABASE=%s;PORT=%s;CurrentSchema=%s;UID=%s;PWD=%s",
-				connProperties.HOSTNAME,
-				connProperties.DATABASE,
-				connProperties.PORT,
-				connProperties.SCHEMA,
-				connProperties.UID,
-				connProperties.PWD,
-			))
-	}
-	if err != nil {
-		log.Printf("DB connection failed")
-		return err
-	}
-	log.Print("DB CONNECTED ")
-
-	CurrentDB.DBConnection = conn
-	CurrentDB.Environment = connProperties.ENV
-	return nil
+	return sqlPhysical
 }
 
 type ConnectionPropertiesDef struct {
@@ -503,16 +524,14 @@ func loadConfigFile() {
 		panic(err)
 	}
 	jsonString := jsonc.ToJSON(jsonStringWithComments)
-	//var c Config
 	if err := json.Unmarshal(jsonString, &Config); err != nil {
 		log.Fatal(err)
 	}
-
 	fmt.Printf("%+v\n", Config)
 	fmt.Printf("%+v\n", Config.ConnectionProperties[0])
 }
 
-func ListEnvironment() []string {
+func listEnvironment() []string {
 	var dblist []string
 	for _, v := range Config.ConnectionProperties {
 		dblist = append(dblist, v.ENV)
@@ -525,7 +544,7 @@ func main() {
 	log.Print("USERDOMIN = " + os.Getenv("USERDOMAIN"))
 	initL2PDictionary()
 	initCodeMaster()
-	dblist := ListEnvironment()
+	dblist := listEnvironment()
 	CurrentDB.Environment = dblist[0]
 	ConnectDB(CurrentDB.Environment)
 
@@ -549,8 +568,8 @@ func main() {
 	router.GET("/dataDictionaryEnquiry", renderDataDictionaryEnquiry)
 	router.GET("/teianList", renderTeianList)
 	router.GET("/teianEnquiry", renderTeianEnquiry)
+	router.GET("/playGround", renderPlayGround)
 
 	router.Run(":8080")
-	CurrentDB.DBConnection.Close()
 
 }

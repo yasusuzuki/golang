@@ -6,27 +6,27 @@
     <meta name="description" content="web-keiyaku-viewer_v1.0">
     <title>web-keiyaku-viewer_v1.0</title>
     <link rel="stylesheet" href="/assets/Site.css">
-    <script>
-        //"契約DB詳細"ボタンや”事故DB詳細"ボタンを押下時に、遷移先をボタンに応じて動的に変更する機能
-        //前提：　<FORM>のNAMEが”DFORM"でなければならない.
-        function setFormAction(func) { document.DFORM.action = func; }
-    </script>
+    <script type="text/javascript" src="/assets/script.js"></script>
+
 </head>
 
 <body>
     <h1> 契約DB詳細 </h1>
-    <FORM NAME='_FORM_keiyakuEnquiry_' METHOD='GET' ACTION='/keiyakuEnquiry'>
-        <TABLE CELLSPACING='4' BORDER='0'>
-            <TR ALIGN='RIGHT' VALIGN='TOP' NOWRAP>
-                <TD>証券番号：{{.formPolicyNumber}}</TD>
-                <TD>冗長モード: {{.formVerboseMode}}</TD>
+    <FORM NAME='QFORM' METHOD='GET' ACTION='/keiyakuEnquiry'>
+        <TABLE  CLASS='QueryForm'>
+            <TR>
+                <TD>証券番号：</TD>
+                <TD>{{.formPolicyNumber}}</TD>
+                <TD>冗長モード: </TD>
+                <TD>{{.formVerboseMode}}</TD>
            </TR>
         </TABLE>
         <INPUT TYPE='SUBMIT' VALUE='GET' CLASS='getbutton'>
     </FORM>
     <HR SIZE=1 NOSHADE>
-    <INPUT TYPE="submit" VALUE="契約DB一覧" CLASS='button' onClick="setFormAction('/keiyakuList');">
-    <FORM NAME='DFORM' METHOD='GET' ACTION='/'>
+    <A HREF='/keiyakuList' CLASS='button_face'>契約DB一覧</A>
+
+    <FORM NAME='DFORM' METHOD='GET' ACTION='DUMMY'>
         <DIV STYLE='display:flex;flex-direction:row;justify-content: space-between;width:400px'>
             <A HREF='#保険契約' style='color:gray;text-decoration:none'>保険契約↓</A>
             <A HREF='#保険契約種目' style='color:gray;text-decoration:none'>保険契約種目↓</A>
@@ -37,11 +37,11 @@
         {{range $idx,$item := .SQLs}}
         <h3 id='{{$item.LogicalTableName}}'>・ {{$item.LogicalTableName}}</h3>
             {{if eq $item.Sql "NO_PHYSICAL_TABLE"}}
-                <div>物理テーブルはなし</div>
+                <div class='message_info'>物理テーブルはなし</div>
             {{else if eq $item.Sql "NO_POLICY_NUMBER"}}
-                <div>証券番号なし</div>
+                <div class='message_info'>証券番号なし</div>
             {{else}}
-                {{buildHTMLTablefromDB $item.Sql $callback}}
+                {{buildHTMLTablefromDB $.conn $item.Sql $callback}}
             {{end}}
         {{end}}
     </FORM>

@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang=ja>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="description" content="web-keiyaku-viewer_v1.0">
+    <title>web-keiyaku-viewer_v1.0</title>
+    <link rel="stylesheet" href="/assets/Site.css">
+    <script type="text/javascript" src="/assets/script.js"></script>
+</head>
+
+<BODY>
+    <H1> 実験場 </H1>
+
+    <FORM NAME='QFORM' METHOD='GET' ACTION='/playGround'>
+        <TABLE CLASS='QueryForm'>
+            <TR>
+                <TD>案件番号(*)： </TD>
+                <TD>{{.formBuiler.Build "textForm" "AnkenNumber"}} </TD>
+                <TD>商品(*): </TD>
+                <TD>{{.formBuiler.Build "optionForm" "Product" " ,S100000,S100010,S100020,S300000" "all,THEクルマ,SGP NF,SGP F,THEカラダ"}} </TD>
+                <TD>始期</TD>
+                <TD><input type="date"></TD>
+            </TR>
+            <TR>
+                <TD>種目：</TD>
+                <TD>{{.formBuiler.Build "optionForm" "PolicyType" " ,73,71" "全部,自動車保険,傷害保険"}}</TD>
+                <TD>MAX:</TD>
+                <TD>{{.formBuiler.Build "numberForm" "MaxFetchRows" "10"}}</TD>
+                <TD>DB：</TD>
+                <TD>{{.formBuiler.Build "environment" "Environment"}} <font color='lightgrey'>(config.json内のDBConnection.ENVより)</font></TD>
+            </TR>
+        </TABLE>
+        <INPUT TYPE='SUBMIT' VALUE='GET' CLASS='getbutton'>
+    </FORM>
+    <HR SIZE=1 NOSHADE>
+    <A HREF='/teianEnquiry' CLASS='button_face'>提案DB詳細</A>
+    <A HREF='/keiyakuList' CLASS='button_face'>契約DB一覧</A>
+    <A HREF='/codeMasterEnquiry' CLASS='button_face'>コードマスタ</A>
+    <A HREF='/dataDictionaryEnquiry' CLASS='button_face'>データディクショナリ（データ項目一覧）</A>
+    <A HREF='/teianList' CLASS='button_face'>提案DB一覧</A>
+    <A HREF='/keiyakuHistory' CLASS='button_face button_face_disabled'>契約DB履歴一覧[開発中]</A>
+    <A HREF='/shokenSyoruiSakuseiEnquiry' CLASS='button_face button_face_disabled'>証券書類作成DB[開発中]</A>
+
+    {{$SQL := print "SELECT TOP " .req.MaxFetchRows  ` a.証券＿番号,a.保険契約明細区分＿コード,a.保険契約消滅変更当否＿フラグ,a.契約始期年月日＿日付,d.単位商品＿コード,
+    d.保険契約明細＿番号,a.団体＿コード,a.代理店＿コード,a.代理店サブ＿コード,a.契約保険期間年＿数,a.イベント発生タイムスタンプ＿日付
+    FROM 保険契約 a
+    INNER JOIN 保険契約明細 d ON a.証券＿番号 = d.証券＿番号 AND a.契約計上枝番＿番号 = d.契約計上枝番＿番号
+    WHERE 1 = 1
+    ` }}
+    {{if ne .req.AnkenNumber ""}}
+        {{$SQL = (print $SQL " AND a.証券＿番号 LIKE '%" .req.AnkenNumber "%'")}}
+    {{end}}
+    {{if and ( ne .req.PolicyType "全部") ( ne .req.PolicyType "") }}
+        {{$SQL = (print $SQL " AND d.保険契約保険種目＿コード LIKE '" .req.PolicyType "'")}}
+    {{end}}
+    {{if and ( ne .req.Product "全部") ( ne .req.Product "") }}
+         {{$SQL = (print $SQL " AND d.単位商品＿コード = '" .req.Product "'")}}
+    {{end}}
+    {{$SQL = (print $SQL " ORDER BY a.証券＿番号 DESC ")}}
+
+
+    {{$SQL_P := L2P_SQL $SQL }}
+    <PRE>
+        {{$SQL_P}}
+    </PRE>
+
+    <FORM NAME='DFORM' METHOD='GET' ACTION='DUMMY'>
+        <h3>・実験SQL結果</h3>
+        {{buildHTMLTablefromDB .conn $SQL_P .htmlTableCallBack}}
+    </FORM>
+</BODY>
+
+</HTML>

@@ -10,6 +10,7 @@ import (
 )
 
 func renderTeianEnquiry(ctx *gin.Context) {
+	//１．　HTTPリクエストパラメータを解析する
 	type TableSQL struct {
 		LogicalTableName string
 		Sql              string
@@ -21,12 +22,14 @@ func renderTeianEnquiry(ctx *gin.Context) {
 	ctx.Bind(&req) //HTTP Requestのパラメータをreq構造体に紐づける
 	log.Printf("request parameter [%+v]", req)
 
-	err := ConnectDB(CurrentDB.Environment)
+	//２．　データベースに接続する
+	conn, err := ConnectDB(CurrentDB.Environment)
 	if err != nil {
 		ctx.String(http.StatusInternalServerError, err.Error())
 	}
-	defer CurrentDB.DBConnection.Close()
+	//defer conn.Close()　// Access DBだとここでハングアップしてしまうので、クローズしないことにした
 
+	//３．　SQLを組み立てる
 	sqls := make([]TableSQL, 0, 100)
 
 	for _, logicalTableName := range DBTables {
@@ -47,21 +50,28 @@ func renderTeianEnquiry(ctx *gin.Context) {
 			sqls = append(sqls, TableSQL{logicalTableName, fmt.Sprintf("SELECT * FROM %s WHERE %s IN (%s) ", L2P(logicalTableName), L2P("提案案件＿番号"), ankenNumsString)})
 		}
 	}
+
+	//４．　入力フォームを組み立てる
 	formAnkenNumber := buildInputTextField("AnkenNumber", strings.Join(req.AnkenNumber, ","))
 	formVerboseMode := buildInputCheckbox("VerboseMode", req.VerboseMode == "on")
 
+	//５．　テンプレートエンジンからのコールバックを定義する
 	callback := map[string]htmlTableCallBack{
 		"VERBOSE_MODE_FLAG": func(key string, val string, columns []string, values DBRecord) string {
 			return req.VerboseMode
 		},
 	}
+
+	//６．　GINフレームワークのテンプレートエンジンを呼ぶ
 	//gin.H内に、キーバリュー形式の値を設定しておくと、テンプレート側から変数として参照できる　{{.変数名}}といった感じ
 	ctx.HTML(http.StatusOK, "TeianEnquiry.html", gin.H{
 		"formAnkenNumber":   formAnkenNumber,
 		"htmlTableCallBack": callback,
+		"conn":              conn,
 		"SQLs":              sqls,
 		"formVerboseMode":   formVerboseMode,
 	})
+
 	log.Print("DONE: renderKeiyakuEnquiry")
 
 }

@@ -6,36 +6,38 @@
     <meta name="description" content="web-keiyaku-viewer_v1.0">
     <title>web-keiyaku-viewer_v1.0</title>
     <link rel="stylesheet" href="/assets/Site.css">
-    <script>
-        //"契約DB詳細"ボタンや”事故DB詳細"ボタンを押下時に、遷移先をボタンに応じて動的に変更する機能
-        //前提：　<FORM>のNAMEが”DFORM"でなければならない.
-        function setFormAction(func) { document.DFORM.action = func; }
-    </script>
+    <script type="text/javascript" src="/assets/script.js"></script>
+
 </head>
 
 <body>
     <h1> データディクショナリ（データ項目一覧） </h1>
-    <DIV>
-        <FONT color='lightgrey'>※config.jsonの[DataDictionaryFilePath]で指定したファイルの内容を表示しています。最新ではないので注意。</FONT>
-    </DIV>
-    <FORM NAME='_FORM_codeMaster_' METHOD='GET' ACTION='/dataDictionaryEnquiry'>
-        <TABLE CELLSPACING='4' BORDER='0'>
-            <TR ALIGN='RIGHT' VALIGN='TOP' NOWRAP>
-                <TD>データ項目名(*)：{{.formField}} </TD>
-                <TD>項目物理名（データモデリング）(*):{{.formFieldPhysicalNameForDataModel}} </TD>
+    <FORM NAME='QFORM' METHOD='GET' ACTION='/dataDictionaryEnquiry'>
+        <TABLE  CLASS='QueryForm'>
+            <TR>
+                <TD>データ項目名(*)：</TD>
+                <TD>{{.formField}} </TD>
+                <TD>項目物理名（データモデリング）(*):</TD>
+                <TD>{{.formFieldPhysicalNameForDataModel}} </TD>
             </TR>
-            <TR ALIGN='RIGHT' VALIGN='TOP' NOWRAP>
-                <TD>MAX:{{.formMaxFetchRows}}</TD>
-                <TD>   </TD>
+            <TR>
+                <TD>MAX:</TD>
+                <TD>{{.formMaxFetchRows}}</TD>
+                <TD> </TD>
+                <TD></TD>
             </TR>
         </TABLE>
         <INPUT TYPE='SUBMIT' VALUE='GET' CLASS='getbutton'>
     </FORM>
     <HR SIZE=1 NOSHADE>
-    <INPUT TYPE="submit" VALUE="契約DB一覧" CLASS='button' onClick="setFormAction('/keiyakuList');">
-    <FORM NAME='DFORM' METHOD='GET' ACTION='/codeMasterEnquiry'>
+    <A HREF='/keiyakuList' CLASS='button_face'>契約DB一覧</A>
+
+    <FORM NAME='DFORM' METHOD='GET' ACTION='DUMMY'>
        <h3>・データディクショナリ（データ項目一覧）</h3>
-        {{.HTMLTable}}
+    <DIV CLASS="message_info">
+        ※config.jsonの[DataDictionaryFilePath]で指定したファイルの内容を表示しています。最新ではないので注意。
+    </DIV>
+    {{.HTMLTable}}
     </FORM>
 </body>
 

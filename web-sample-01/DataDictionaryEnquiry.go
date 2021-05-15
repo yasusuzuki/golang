@@ -12,6 +12,7 @@ import (
 )
 
 func renderDataDictionaryEnquiry(ctx *gin.Context) {
+	//１．　HTTPリクエストパラメータを解析する
 	var req struct {
 		Field                         string `form:"Field"       binding:"required"`
 		FieldPhysicalNameForDataModel string `form:"FieldPhysicalNameForDataModel"   binding:"required"`
@@ -22,6 +23,7 @@ func renderDataDictionaryEnquiry(ctx *gin.Context) {
 	req.FieldPhysicalNameForDataModel = rtrim(req.FieldPhysicalNameForDataModel)
 	log.Print("request parameter exists:" + fmt.Sprint(req))
 
+	//２．　データから必要な情報を抽出する
 	list := [][]string{}
 	if req.MaxFetchRows == "" {
 		req.MaxFetchRows = "500"
@@ -38,6 +40,8 @@ func renderDataDictionaryEnquiry(ctx *gin.Context) {
 			break
 		}
 	}
+
+	//３．　抽出したデータを表示する
 	html := ""
 	html += "<font color='grey'>" + fmt.Sprint(len(list)) + " rows fetched</font>"
 	html += "<TABLE CELLSPACING=0 CLASS='DataTable'>\n"
@@ -47,10 +51,14 @@ func renderDataDictionaryEnquiry(ctx *gin.Context) {
 	}
 	html += "</TABLE>"
 
+	//４．　入力フォームを組み立てる
 	formField := buildInputTextField("Field", req.Field)
 	formFieldPhysicalNameForDataModel := buildInputTextField("FieldPhysicalNameForDataModel", req.FieldPhysicalNameForDataModel)
-	formMaxFetchRows := buildInputTextField("MaxFetchRows", req.MaxFetchRows)
+	formMaxFetchRows := buildNumberTextField("MaxFetchRows", req.MaxFetchRows)
 
+	//５．　テンプレートエンジンからのコールバックを定義する
+
+	//６．　GINフレームワークのテンプレートエンジンを呼ぶ
 	//gin.H内に、キーバリュー形式の値を設定しておくと、テンプレート側から変数として参照できる　{{.変数名}}といった感じ
 	ctx.HTML(http.StatusOK, "DataDictionaryEnquiry.html", gin.H{
 		"formField":                         formField,
@@ -58,5 +66,6 @@ func renderDataDictionaryEnquiry(ctx *gin.Context) {
 		"formMaxFetchRows":                  formMaxFetchRows,
 		"HTMLTable":                         template.HTML(html),
 	})
+
 	log.Print("DONE: renderDataDictionaryEnquiry")
 }
